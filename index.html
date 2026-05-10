@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم — مشروعا الجامعة الإسلامية</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Leaflet (interactive map) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<style>
+:root{
+  --ink:#0a1628;--ink-2:#0f1d33;--ink-3:#162a44;
+  --gold:#c9a96e;--gold-soft:#d8be8a;--gold-deep:#a78348;
+  --champagne:#e8dcc4;--cream:#f7f1e3;--paper:#fbf8f1;
+  --rose:#a96d6d;--emerald:#3a7d5e;--bordeaux:#6b1820;
+  --line:rgba(201,169,110,.18);--line-strong:rgba(201,169,110,.4);
+  --text:#e8dcc4;--muted:#9aa6b8;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+  --p1:#c9a96e;
+  --p2:#3a7d5e;
+  --red:#e54848;
+  --red-soft:#e29292;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1200px 600px at 90% -10%, rgba(201,169,110,.10), transparent 60%),
+    radial-gradient(800px 500px at -10% 110%, rgba(58,125,94,.08), transparent 60%),
+    linear-gradient(180deg,#0a1628,#08111f 60%,#06101c);
+  color:var(--text);
+  font-family:'Tajawal','Cairo','Segoe UI',Tahoma,Arial,sans-serif;
+  line-height:1.65;min-height:100vh;
+}
+
+/* Reveal animations */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+.reveal.delay-1{transition-delay:.08s}
+.reveal.delay-2{transition-delay:.16s}
+.reveal.delay-3{transition-delay:.24s}
+.reveal.delay-4{transition-delay:.32s}
+.reveal.delay-5{transition-delay:.40s}
+
+/* Side rail (mood board) */
+.side-rail{
+  position:fixed;top:50%;right:0;transform:translateY(-50%);
+  width:42px;background:linear-gradient(180deg,#0a1628,#0f1d33);
+  border:1px solid var(--line);border-right:0;
+  border-radius:14px 0 0 14px;padding:10px 0;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  z-index:30;box-shadow:-4px 0 20px rgba(0,0,0,.4);
+}
+.side-rail .pill{width:20px;height:24px;border-radius:4px}
+.side-rail .pill.t1{background:linear-gradient(180deg,#0a1628,#1b2c47)}
+.side-rail .pill.t2{background:linear-gradient(180deg,var(--gold),var(--gold-deep))}
+.side-rail .pill.t3{background:linear-gradient(180deg,var(--champagne),var(--cream))}
+.side-rail .pill.t4{background:linear-gradient(180deg,#1f5640,var(--emerald))}
+.side-rail .pill.t5{background:linear-gradient(180deg,#6b1820,var(--rose))}
+.side-rail .pill.t6{background:#0a1628;background-image:radial-gradient(circle at 50% 50%,var(--gold) 1px,transparent 2px);background-size:6px 6px}
+.side-rail .label{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  color:var(--gold);font-family:'Playfair Display',serif;font-size:9px;
+  letter-spacing:5px;text-transform:uppercase;margin-top:8px;
+}
+@media (max-width:980px){.side-rail{display:none}}
+
+.divider{display:flex;align-items:center;gap:14px;margin:6px 0 18px}
+.divider .ln{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent)}
+.divider .dia{width:8px;height:8px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 10px rgba(201,169,110,.5)}
+
+/* HERO */
+header.hero{
+  position:relative;padding:42px 60px 32px;border-bottom:1px solid var(--line);
+  background:
+    linear-gradient(180deg,rgba(10,22,40,.55),rgba(10,22,40,.95)),
+    radial-gradient(900px 360px at 50% 0%,rgba(201,169,110,.28),transparent 70%);
+  overflow:hidden;
+}
+header.hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:repeating-linear-gradient(45deg,rgba(201,169,110,.04) 0 2px,transparent 2px 14px);
+  pointer-events:none;
+}
+.hero-row{display:flex;align-items:center;justify-content:space-between;gap:24px;position:relative;z-index:2;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:18px}
+.logo-slot{
+  width:78px;height:78px;border-radius:50%;
+  background:#ffffff;
+  border:1.5px solid var(--gold);
+  box-shadow:0 0 0 4px rgba(201,169,110,.10), 0 4px 14px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+  padding:6px;
+}
+.logo-slot img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.logo-slot::after{content:attr(data-fallback);font-family:'Playfair Display',serif;font-weight:700;color:var(--gold-deep);font-size:24px;letter-spacing:1px}
+.logo-slot.has-img::after{display:none}
+.brand-text .kicker{font-size:11px;letter-spacing:6px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.brand-text h1{margin:0;font-family:'Cairo','Playfair Display',serif;font-weight:800;font-size:30px;color:var(--cream);letter-spacing:.5px;line-height:1.2}
+.brand-text .sub{color:var(--muted);font-size:13px;margin-top:6px}
+.meta-bar{display:flex;gap:22px;align-items:center;font-size:12px;color:var(--muted)}
+.meta-bar .item{display:flex;flex-direction:column;align-items:flex-start}
+.meta-bar .lbl{color:var(--gold);letter-spacing:3px;font-size:10px;text-transform:uppercase}
+.meta-bar .val{color:var(--cream);font-family:'Playfair Display',serif;font-size:14px}
+
+/* Hero strip */
+.hero-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  margin-top:22px;position:relative;z-index:2;
+}
+@media (max-width:760px){.hero-strip{grid-template-columns:repeat(2,1fr)}}
+.hero-tile{
+  background:linear-gradient(180deg,rgba(10,22,40,.7),rgba(10,22,40,.4));
+  border:1px solid var(--line);border-radius:12px;padding:14px 18px;
+}
+.hero-tile .lbl{color:var(--gold);font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.hero-tile .val{font-family:'Playfair Display',serif;font-size:24px;color:var(--cream);font-weight:700;line-height:1.1}
+.hero-tile .val small{font-size:12px;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:400;margin-right:4px}
+
+/* STICKY NAV */
+nav.sticky-nav{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,rgba(10,22,40,.95),rgba(10,22,40,.85));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:10px 60px;
+}
+.nav-row{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;max-width:1500px;margin:0 auto}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.nav-link{
+  padding:8px 14px;border-radius:7px;color:var(--muted);
+  font-size:12px;text-decoration:none;transition:all .2s;font-weight:500;
+  border:1px solid transparent;letter-spacing:.3px;
+}
+.nav-link:hover{color:var(--gold);background:rgba(201,169,110,.06);border-color:var(--line)}
+.nav-link.active{color:var(--gold);background:rgba(201,169,110,.1);border-color:var(--line-strong)}
+
+/* Container */
+.container{padding:30px 60px 56px 80px;display:grid;gap:26px;max-width:1500px;margin:0 auto}
+@media (max-width:980px){header.hero{padding:24px}.container{padding:24px}nav.sticky-nav{padding:10px 20px}}
+
+/* Card */
+.card{position:relative;background:linear-gradient(180deg,rgba(22,42,68,.85),rgba(15,29,51,.85));border:1px solid var(--line);border-radius:14px;padding:24px 26px;box-shadow:var(--shadow)}
+.card::before{content:'';position:absolute;inset:0;border-radius:14px;pointer-events:none;background:linear-gradient(180deg,rgba(201,169,110,.08),transparent 60%)}
+.card .corner{position:absolute;width:28px;height:28px;border:1px solid var(--gold);opacity:.6}
+.card .corner.tl{top:8px;right:8px;border-bottom:0;border-left:0}
+.card .corner.br{bottom:8px;left:8px;border-top:0;border-right:0}
+.card h2{margin:0;color:var(--cream);font-size:22px;font-family:'Cairo','Playfair Display',serif;font-weight:700;letter-spacing:.5px;position:relative;z-index:1}
+.card .sub{color:var(--muted);font-size:13px;margin-top:4px;position:relative;z-index:1}
+.card .body{position:relative;z-index:1;margin-top:16px}
+
+.section-anchor{scroll-margin-top:90px}
+
+/* Executive KPI cards */
+.exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+@media (max-width:1100px){.exec-kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:540px){.exec-kpis{grid-template-columns:1fr}}
+.exec-kpi{
+  background:linear-gradient(180deg,rgba(10,22,40,.85),rgba(10,22,40,.5));
+  border:1px solid var(--line);border-radius:14px;padding:22px 22px;
+  position:relative;cursor:default;transition:all .3s;overflow:hidden;
+}
+.exec-kpi.clickable{cursor:pointer}
+.exec-kpi.clickable:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 12px 30px rgba(201,169,110,.18)}
+.exec-kpi::after{
+  content:'';position:absolute;top:0;right:0;width:140px;height:140px;
+  background:radial-gradient(closest-side,rgba(201,169,110,.12),transparent);
+  pointer-events:none;
+}
+.exec-kpi .icon{
+  position:absolute;top:18px;left:18px;font-size:22px;color:var(--gold);
+  opacity:.55;
+}
+.exec-kpi .lbl{color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;font-weight:600}
+.exec-kpi .val{font-family:'Playfair Display',serif;font-size:42px;color:var(--cream);font-weight:700;line-height:1}
+.exec-kpi .val small{font-size:14px;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:400;margin-right:6px}
+.exec-kpi .val.ok{color:#a8d9b8}
+.exec-kpi .val.warn{color:#e8c478}
+.exec-kpi .val.danger{color:var(--red-soft)}
+.exec-kpi .extra{margin-top:10px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:10px}
+.exec-kpi .mini-bar{margin-top:8px;height:4px;background:rgba(201,169,110,.1);border-radius:2px;overflow:hidden}
+.exec-kpi .mini-bar > div{height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold));transition:width 1.2s ease-out .5s}
+
+.popup-kpi{
+  position:absolute;top:100%;right:0;margin-top:8px;
+  background:linear-gradient(180deg,#0f1d33,#0a1628);
+  border:1px solid var(--gold);border-radius:10px;padding:14px;min-width:300px;
+  box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:30;display:none;
+}
+.popup-kpi.show{display:block;animation:fadein .25s}
+@keyframes fadein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.popup-kpi .ttl{color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+.popup-kpi ul{margin:0;padding:0;list-style:none}
+.popup-kpi li{padding:10px 12px;border-radius:8px;background:rgba(201,169,110,.05);border:1px solid var(--line);margin-bottom:8px;color:var(--cream);font-size:13px}
+.popup-kpi li:last-child{margin-bottom:0}
+.popup-kpi li .small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.popup-kpi li.pending{background:rgba(229,72,72,.08);border-color:rgba(229,72,72,.4);color:var(--red-soft)}
+
+/* Project card */
+.project-card{position:relative;background:linear-gradient(180deg,rgba(15,29,51,.92),rgba(10,22,40,.92));border:1px solid var(--line);border-radius:14px;padding:26px 28px;box-shadow:var(--shadow);overflow:hidden}
+.project-card::after{content:'';position:absolute;top:0;right:0;width:60%;height:100%;background:radial-gradient(closest-side,rgba(201,169,110,.07),transparent);pointer-events:none}
+.project-card .corner{position:absolute;width:28px;height:28px;border:1px solid var(--gold);opacity:.6}
+.project-card .corner.tl{top:8px;right:8px;border-bottom:0;border-left:0}
+.project-card .corner.br{bottom:8px;left:8px;border-top:0;border-right:0}
+.project-tag{font-size:11px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.project-title{font-family:'Cairo','Playfair Display',serif;font-weight:800;font-size:26px;color:var(--cream);margin:0 0 6px;letter-spacing:.5px;line-height:1.2}
+.project-subtitle{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+.tp-slim{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.tp-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:14px;flex-wrap:wrap}
+.tp-head .left{color:var(--gold);font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.tp-head .right{color:var(--muted);font-size:11px;font-family:'Playfair Display',serif}
+.tp-head .pct{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);font-weight:700;margin-left:6px}
+.tp-bar{height:6px;border-radius:4px;background:rgba(201,169,110,.08);border:1px solid var(--line);overflow:hidden;position:relative}
+.tp-fill{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-soft) 100%);box-shadow:inset 0 0 8px rgba(255,255,255,.2),0 0 12px rgba(201,169,110,.4);border-radius:3px;transition:width 1.5s ease-out .3s}
+.tp-mini-dates{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:5px;font-family:'Playfair Display',serif}
+
+/* Project meta — now 5 cells (PM included) */
+.proj-meta{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+@media (max-width:1100px){.proj-meta{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:680px){.proj-meta{grid-template-columns:repeat(2,1fr)}}
+.proj-meta .cell{background:rgba(10,22,40,.5);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;min-height:64px}
+.proj-meta .lbl{color:var(--gold);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.proj-meta .val{color:var(--cream);font-size:14px;font-family:'Playfair Display',serif;font-weight:600}
+.proj-meta .val.ok{color:#a8d9b8}
+.proj-meta .val.danger{color:var(--red-soft)}
+.proj-meta .cell.pm{background:linear-gradient(135deg,rgba(201,169,110,.18),rgba(201,169,110,.04));border-color:var(--gold);position:relative}
+.proj-meta .cell.pm .val{color:var(--gold-soft);font-family:'Cairo',sans-serif;font-weight:700}
+.proj-meta .cell.pm .av{
+  position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,#fff8e5,var(--gold));color:#0a1628;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:11px;
+  box-shadow:0 0 0 2px rgba(201,169,110,.25);
+}
+.proj-meta .cell.pm .small{font-size:10px;color:var(--muted);margin-top:1px;font-family:'Tajawal',sans-serif;font-weight:400}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{padding:5px 11px;border-radius:999px;font-size:11px;background:rgba(58,125,94,.12);border:1px solid rgba(58,125,94,.4);color:#a8d9b8;display:inline-flex;align-items:center;gap:6px}
+.chip .dot{width:5px;height:5px;border-radius:50%;background:#a8d9b8;box-shadow:0 0 6px rgba(168,217,184,.5)}
+.chip.pending{background:rgba(229,72,72,.10);border-color:rgba(229,72,72,.55);color:var(--red-soft)}
+.chip.pending .dot{background:var(--red);box-shadow:0 0 6px rgba(229,72,72,.5)}
+.section-title{font-size:11px;color:var(--gold);letter-spacing:4px;text-transform:uppercase;margin:14px 0 8px;font-weight:600}
+
+/* MAP */
+#map{height:520px;width:100%;border-radius:12px;border:1px solid var(--line);background:#06101c}
+.map-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.map-btn{
+  padding:10px 16px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(10,22,40,.7);color:var(--cream);cursor:pointer;
+  font-size:12px;font-family:inherit;letter-spacing:.5px;transition:all .2s;font-weight:600;
+}
+.map-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,169,110,.06)}
+.map-btn.p1{border-color:var(--red)}
+.map-btn.p1:hover{background:rgba(229,72,72,.08);color:var(--red-soft)}
+.map-btn.p2{border-color:var(--red)}
+.map-btn.p2:hover{background:rgba(229,72,72,.08);color:var(--red-soft)}
+.map-legend{
+  display:flex;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);flex-wrap:wrap;
+}
+.map-legend .lg{display:inline-flex;align-items:center;gap:8px}
+.map-legend .sw{width:18px;height:12px;border-radius:3px;border:2px solid}
+
+/* Leaflet popup styling */
+.leaflet-popup-content-wrapper{background:linear-gradient(180deg,#0f1d33,#0a1628);color:var(--cream);border:1px solid var(--gold);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.6)}
+.leaflet-popup-tip{background:#0f1d33;border:1px solid var(--gold)}
+.leaflet-popup-content{margin:14px 16px;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;text-align:right;font-size:13px;line-height:1.6}
+.leaflet-popup-content .title{color:var(--gold);font-weight:700;font-size:14px;margin-bottom:8px;font-family:'Cairo',sans-serif}
+.leaflet-popup-content .row{display:flex;justify-content:space-between;gap:10px;font-size:12px;border-bottom:1px solid var(--line);padding:4px 0}
+.leaflet-popup-content .row:last-child{border-bottom:0}
+.leaflet-popup-content .k{color:var(--muted)}
+.leaflet-popup-content .v{color:var(--cream);font-weight:600}
+.leaflet-control-zoom a{background:rgba(15,29,51,.95)!important;color:var(--gold)!important;border:1px solid var(--line)!important}
+.leaflet-control-zoom a:hover{background:rgba(201,169,110,.15)!important}
+
+/* JOURNEY */
+.journey-tabs{display:flex;gap:10px;margin:8px 0 18px;flex-wrap:wrap}
+.journey-tab{
+  padding:9px 18px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(10,22,40,.7);color:var(--cream);cursor:pointer;
+  font-size:12px;font-family:inherit;letter-spacing:.5px;transition:all .2s;font-weight:600;
+}
+.journey-tab:hover{border-color:var(--gold-soft);color:var(--gold)}
+.journey-tab.active{background:linear-gradient(180deg,var(--gold),var(--gold-deep));border-color:var(--gold);color:#0a1628}
+
+.journey{position:relative;display:grid;gap:16px;padding:18px 0}
+.journey::before{content:'';position:absolute;top:36px;bottom:36px;right:30px;width:2px;background:linear-gradient(180deg,transparent,var(--gold-soft) 10%,var(--gold-soft) 90%,transparent)}
+@media (max-width:760px){.journey::before{right:18px}}
+.j-stage{position:relative;padding:16px 60px 16px 16px;background:linear-gradient(180deg,rgba(10,22,40,.7),rgba(10,22,40,.4));border:1px solid var(--line);border-radius:12px;transition:all .25s}
+@media (max-width:760px){.j-stage{padding-right:48px}}
+.j-stage:hover{border-color:var(--gold-soft);transform:translateX(-4px)}
+.j-stage .marker{position:absolute;top:18px;right:14px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;border:2px solid;background:#0a1628;z-index:2}
+@media (max-width:760px){.j-stage .marker{right:2px;width:30px;height:30px;font-size:12px}}
+.j-stage .title{color:var(--cream);font-weight:700;font-size:15px;margin-bottom:4px;font-family:'Cairo',sans-serif}
+.j-stage .meta{color:var(--muted);font-size:12px}
+.j-stage .badge{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;font-size:10px;letter-spacing:1px;font-weight:600}
+.j-stage.done .marker{border-color:#3a7d5e;background:#3a7d5e;color:#fff}
+.j-stage.done .badge{background:rgba(58,125,94,.18);color:#a8d9b8;border:1px solid rgba(58,125,94,.5)}
+.j-stage.inprog .marker{border-color:var(--gold);background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:#0a1628}
+.j-stage.inprog .badge{background:rgba(201,169,110,.2);color:var(--gold-soft);border:1px solid var(--line-strong)}
+.j-stage.inprog{box-shadow:0 0 22px rgba(201,169,110,.18);border-color:var(--gold-soft)}
+.j-stage.upcoming .marker{border-color:#9aa6b8;color:#9aa6b8}
+.j-stage.upcoming .badge{background:rgba(154,166,184,.12);color:var(--muted);border:1px solid rgba(154,166,184,.3)}
+.j-stage.critical .marker{border-color:var(--red-soft);background:#a96d6d;color:#fff}
+.j-stage.critical .badge{background:rgba(169,109,109,.18);color:var(--red-soft);border:1px solid rgba(169,109,109,.45)}
+
+/* Tables */
+.table-wrap{max-height:600px;overflow:auto;margin-top:8px;border-radius:10px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:13px;color:var(--cream)}
+thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,#142540,#0f1d33);color:var(--gold);font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:11px 10px;text-align:right;border-bottom:1px solid var(--line-strong)}
+tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover td{background:rgba(201,169,110,.05)}
+tbody tr.main-task td{background:rgba(201,169,110,.06);font-weight:700}
+tbody tr.main-task td:first-child{color:var(--gold);font-family:'Playfair Display',serif;font-size:18px;font-weight:800}
+tbody tr.main-task .main-name{color:var(--gold-soft);font-family:'Cairo',sans-serif}
+tbody tr.sub-task td{padding-right:22px}
+tbody tr.sub-task td:first-child{color:var(--muted);font-size:12px}
+tbody tr.sub-task .sub-name::before{content:'•';color:var(--gold);margin-left:8px}
+
+.task-status{font-size:11px;padding:4px 10px;border-radius:999px;display:inline-block;white-space:nowrap;font-weight:600}
+.s-done{background:rgba(58,125,94,.18);color:#a8d9b8;border:1px solid rgba(58,125,94,.5)}
+.s-inprog{background:rgba(201,169,110,.18);color:var(--gold-soft);border:1px solid var(--line-strong)}
+.s-soon{background:rgba(232,196,120,.18);color:#e8c478;border:1px solid rgba(232,196,120,.4)}
+.s-up{background:rgba(154,166,184,.12);color:var(--muted);border:1px solid rgba(154,166,184,.3)}
+.s-due{background:rgba(169,109,109,.18);color:var(--red-soft);border:1px solid rgba(169,109,109,.45)}
+
+/* GANTT */
+.tabs{display:flex;gap:10px;margin:12px 0 16px;flex-wrap:wrap}
+.tab-btn{padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:rgba(10,22,40,.7);color:var(--cream);cursor:pointer;font-size:12px;font-family:inherit;letter-spacing:.5px;transition:all .2s}
+.tab-btn:hover{border-color:var(--gold-soft);color:var(--gold)}
+.tab-btn.active{background:linear-gradient(180deg,var(--gold),var(--gold-deep));border-color:var(--gold);color:#0a1628;font-weight:700}
+
+.gantt{display:grid;gap:5px;margin-top:10px}
+.gantt-header{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:center}
+.months{position:relative;height:24px;border-bottom:1px dashed var(--line-strong)}
+.month{position:absolute;top:4px;font-size:10px;color:var(--gold-soft);transform:translateX(50%);letter-spacing:.5px}
+
+.gantt-group{margin-top:14px;padding-top:6px;border-top:1px solid var(--line)}
+.gantt-group:first-child{border-top:0;padding-top:0;margin-top:8px}
+.group-row{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:center;margin-bottom:6px}
+.group-label{font-size:13px;color:var(--gold);font-weight:700;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:8px}
+.group-label .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#0a1628;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;flex-shrink:0}
+.group-track{position:relative;height:8px;background:rgba(201,169,110,.05);border-radius:4px;border:1px solid var(--line)}
+.group-bar{position:absolute;top:0;height:100%;background:linear-gradient(90deg,rgba(201,169,110,.4),rgba(201,169,110,.7));border-radius:3px;border:1px solid var(--gold);box-shadow:0 0 8px rgba(201,169,110,.3)}
+
+.bar-row{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:center}
+.bar-label{font-size:11px;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:30px;position:relative}
+.bar-label::before{content:'';position:absolute;right:14px;top:50%;width:10px;height:1px;background:var(--gold-soft)}
+.bar-label::after{content:'';position:absolute;right:14px;top:0;bottom:50%;width:1px;background:var(--gold-soft)}
+.bar-track{position:relative;height:18px;background:rgba(10,22,40,.6);border-radius:5px;border:1px solid var(--line);overflow:visible}
+.bar{position:absolute;top:1px;height:14px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:var(--paper);white-space:nowrap;overflow:hidden;box-shadow:inset 0 0 12px rgba(0,0,0,.25)}
+.bar.done{background:linear-gradient(90deg,rgba(58,125,94,.65),rgba(58,125,94,.95));border:1px solid rgba(168,217,184,.4)}
+.bar.inprog{background:linear-gradient(90deg,var(--gold-deep),var(--gold));color:#0a1628;font-weight:700;border:1px solid var(--gold-soft)}
+.bar.soon{background:linear-gradient(90deg,rgba(232,196,120,.55),rgba(232,196,120,.85));color:#0a1628;border:1px solid rgba(232,196,120,.5)}
+.bar.up{background:linear-gradient(90deg,rgba(154,166,184,.3),rgba(154,166,184,.55));border:1px solid var(--line-strong)}
+
+/* Hover-today indicator on each gantt row */
+.row-today{
+  position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red);
+  opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:6;
+  box-shadow:0 0 8px rgba(229,72,72,.7);
+}
+.row-today::after{
+  content:'اليوم';position:absolute;top:-22px;background:#a96d6d;color:#fff;
+  font-size:9px;padding:2px 7px;border-radius:4px;transform:translateX(50%);
+  white-space:nowrap;font-weight:700;letter-spacing:.5px;
+}
+.bar-row:hover .row-today, .group-row:hover .row-today{opacity:1}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--muted);margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.legend .lg{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:18px;height:10px;border-radius:3px}
+
+.warning{background:linear-gradient(180deg,rgba(232,196,120,.06),rgba(169,109,109,.05));border:1px solid rgba(232,196,120,.25);border-right:3px solid var(--gold);border-radius:10px;padding:13px 15px;color:var(--cream);font-size:13px;margin-bottom:10px}
+.warning b{color:var(--gold-soft)}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:1100px){.row{grid-template-columns:1fr}}
+
+.section-num{
+  display:inline-block;font-family:'Playfair Display',serif;
+  color:var(--gold);font-size:14px;letter-spacing:2px;
+  border:1px solid var(--gold);border-radius:999px;
+  padding:2px 12px;margin-bottom:8px;font-weight:600;
+}
+
+/* Tech tables — center-aligned */
+.tech-table th,.tech-table td{text-align:center !important}
+</style>
+</head>
+<body>
+
+<aside class="side-rail" aria-hidden="true">
+  <span class="pill t1"></span><span class="pill t2"></span><span class="pill t3"></span>
+  <span class="pill t4"></span><span class="pill t5"></span><span class="pill t6"></span>
+  <span class="label">Brand · Mood</span>
+</aside>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-row reveal">
+    <div class="brand">
+      <div class="logo-slot" id="logo-iu" data-fallback="ج" data-img="https://raw.githubusercontent.com/Mohamedwagiih/---/d911767ca002589124009844cadae7c7c9fddfce/شعار الجامعة الاسلامية.png" title="شعار الجامعة الإسلامية"></div>
+      <div class="brand-text">
+        <span class="kicker">Project Control Dashboard</span>
+        <h1>لوحة التحكم — مشروعا الجامعة الإسلامية</h1>
+        <span class="sub">المدينة المنورة &nbsp;•&nbsp; الإدارة العامة للاستثمار &nbsp;•&nbsp; <span id="todayHero">—</span></span>
+      </div>
+    </div>
+    <div class="brand">
+      <div class="meta-bar">
+        <div class="item"><span class="lbl">Contractor</span><span class="val">مكتب مدارات للاستشارات الهندسية</span></div>
+      </div>
+      <div class="logo-slot" id="logo-mudarat" data-fallback="م" data-img="https://raw.githubusercontent.com/Mohamedwagiih/---/d911767ca002589124009844cadae7c7c9fddfce/مدرات.png" title="شعار مكتب مدارات"></div>
+    </div>
+  </div>
+
+  <div class="divider reveal delay-1"><span class="ln"></span><span class="dia"></span><span class="ln"></span></div>
+
+  <div class="hero-strip">
+    <div class="hero-tile reveal delay-2"><div class="lbl">المشاريع النشطة</div><div class="val">2 <small>مشروع</small></div></div>
+    <div class="hero-tile reveal delay-3"><div class="lbl">المساحة الإجمالية</div><div class="val">~11.66 <small>مليون م²</small></div></div>
+    <div class="hero-tile reveal delay-4"><div class="lbl">المرحلة الحالية</div><div class="val">شهر 1 <small>من التنفيذ</small></div></div>
+    <div class="hero-tile reveal delay-5"><div class="lbl">حالة المستندات</div><div class="val warn">10/12 <small>✓</small></div></div>
+  </div>
+</header>
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky-nav">
+  <div class="nav-row">
+    <div class="nav-links">
+      <a class="nav-link" href="#sec-overview">نظرة عامة</a>
+      <a class="nav-link" href="#sec-locations">الموقع المكاني</a>
+      <a class="nav-link" href="#sec-progress">تقدّم المشاريع</a>
+      <a class="nav-link" href="#sec-journey">رحلة التقدم</a>
+      <a class="nav-link" href="#sec-timeline">الجدول الزمني</a>
+      <a class="nav-link" href="#sec-critical">التسليمات الحرجة</a>
+      <a class="nav-link" href="#sec-tech">التفاصيل الفنية</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- 1. OVERVIEW -->
+  <section id="sec-overview" class="section-anchor">
+    <div class="card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <span class="section-num">01</span>
+      <h2>نظرة شاملة</h2>
+      <div class="sub">توثيق حالة المشروعين — اضغط أي بطاقة للتفاصيل</div>
+      <div class="body">
+        <div class="exec-kpis">
+          <div class="exec-kpi clickable reveal" id="kpi-projects">
+            <span class="icon">⬢</span>
+            <div class="lbl">المشاريع النشطة</div>
+            <div class="val">2 <small>مشروع</small></div>
+            <div class="extra">اضغط لعرض الأسماء ▾</div>
+            <div class="popup-kpi">
+              <div class="ttl">المشاريع النشطة</div>
+              <ul>
+                <li><b>المشروع الأول</b><span class="small">تخطيط أرض الجامعة الإسلامية صك (٨٢٦٥٤) بحي حضوضاء</span></li>
+                <li><b>المشروع الثاني</b><span class="small">تخطيط وفرز أرض الجامعة الإسلامية رقم (٤) بالمخطط ٤٢٢٧٠٥</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="exec-kpi clickable reveal delay-1" id="kpi-docs">
+            <span class="icon">◆</span>
+            <div class="lbl">معدّل اكتمال المستندات</div>
+            <div class="val warn"><span id="docsRate">10/12</span></div>
+            <div class="extra">٦ مستندات لكل مشروع — صك الملكية معلّق</div>
+            <div class="mini-bar"><div style="width:83.3%"></div></div>
+            <div class="popup-kpi">
+              <div class="ttl">قائمة المستندات (لكل مشروع)</div>
+              <ul>
+                <li>عقد المشروع موقّع</li>
+                <li>محضر استلام الموقع</li>
+                <li>اعتماد كادر فريق العمل</li>
+                <li>تصريح التصوير الجوي (درون)</li>
+                <li>اعتماد تصريح فريق الرفع المساحي</li>
+                <li class="pending"><b>صك الملكية</b><span class="small">لم يُستلم بعد لكلا المشروعَين</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="exec-kpi clickable reveal delay-2" id="kpi-critical">
+            <span class="icon">⚑</span>
+            <div class="lbl">تسليمات حرجة (٣٠ يوم)</div>
+            <div class="val warn" id="critCount">—</div>
+            <div class="extra">حتى <span id="critUntil">—</span></div>
+            <div class="mini-bar"><div id="critBar" style="width:0%"></div></div>
+            <div class="popup-kpi">
+              <div class="ttl">تسليمات قادمة خلال شهر</div>
+              <ul id="popup-deliv-list"></ul>
+            </div>
+          </div>
+
+          <div class="exec-kpi clickable reveal delay-3" id="kpi-elapsed">
+            <span class="icon">∞</span>
+            <div class="lbl">نسبة المنقضي من المدة</div>
+            <div class="val"><span id="elapsedH">—</span><small>حضوضاء</small></div>
+            <div class="mini-bar"><div id="elapsedHbar" style="width:0%"></div></div>
+            <div class="extra" style="display:flex;justify-content:space-between"><span><span id="elapsedE">—</span> الجامعة القائمة</span></div>
+            <div class="mini-bar"><div id="elapsedEbar" style="width:0%;background:linear-gradient(90deg,#1f5640,var(--p2))"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. LOCATIONS -->
+  <section id="sec-locations" class="section-anchor">
+    <div class="card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <span class="section-num">02</span>
+      <h2>الموقع المكاني للمشروعَين</h2>
+      <div class="body">
+        <div id="map"></div>
+        <div class="map-controls">
+          <button class="map-btn p1" data-action="zoom-p1">🔍 الانتقال إلى الموقع الأول — حضوضاء</button>
+          <button class="map-btn p2" data-action="zoom-p2">🔍 الانتقال إلى الموقع الثاني — الجامعة القائمة</button>
+          <button class="map-btn" data-action="reset-view">↻ عرض الموقعَين معاً</button>
+        </div>
+        <div class="map-legend">
+          <span class="lg"><span class="sw" style="border-color:var(--red);background:rgba(229,72,72,.18)"></span>المشروع الأول — أرض حضوضاء (~10 مليون م²)</span>
+          <span class="lg"><span class="sw" style="border-color:var(--red);background:rgba(229,72,72,.18)"></span>المشروع الثاني — الجامعة القائمة (~1.66 مليون م²)</span>
+          <span class="lg" style="margin-right:auto">المسافة بين الموقعَين: ~30 كم</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. PROGRESS (project cards) -->
+  <section id="sec-progress" class="section-anchor">
+    <div class="reveal" style="margin-bottom:8px"><span class="section-num">03</span></div>
+
+    <div class="project-card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <div class="project-tag">PROJECT I &nbsp;•&nbsp; LAND PLANNING</div>
+      <h2 class="project-title">مشروع تخطيط أرض الجامعة بحي حضوضاء</h2>
+      <div class="project-subtitle">صك رقم (٨٢٦٥٤) &nbsp;•&nbsp; عقد رقم 251139003684 &nbsp;•&nbsp; ~10 مليون م²</div>
+      <div class="proj-meta">
+        <div class="cell"><div class="lbl">المدة</div><div class="val">365 يوم</div></div>
+        <div class="cell"><div class="lbl">المباشرة</div><div class="val">7 أبريل 2026</div></div>
+        <div class="cell"><div class="lbl">الانتهاء</div><div class="val">6 أبريل 2027</div></div>
+        <div class="cell"><div class="lbl">المستندات</div><div class="val warn">5/6</div></div>
+        <div class="cell pm">
+          <span class="av">م</span>
+          <div class="lbl">مدير المشروع</div>
+          <div class="val">م. محمود علي</div>
+        </div>
+      </div>
+      <div class="tp-slim">
+        <div class="tp-head">
+          <span class="left">المنقضي من المدة</span>
+          <span class="right">من 7 أبريل 2026 إلى 6 أبريل 2027 &nbsp;•&nbsp; <span class="pct" id="pct-h">—</span></span>
+        </div>
+        <div class="tp-bar"><div class="tp-fill" id="fill-h" style="width:0%"></div></div>
+        <div class="tp-mini-dates"><span>April 7, 2026</span><span id="elapsed-h">—</span><span>April 6, 2027</span></div>
+      </div>
+      <div class="section-title">المستندات الإدارية</div>
+      <div class="chips">
+        <span class="chip"><span class="dot"></span>عقد موقّع</span>
+        <span class="chip"><span class="dot"></span>محضر استلام الموقع</span>
+        <span class="chip"><span class="dot"></span>اعتماد فريق العمل</span>
+        <span class="chip"><span class="dot"></span>تصريح التصوير الجوي</span>
+        <span class="chip"><span class="dot"></span>اعتماد تصريح الرفع المساحي</span>
+        <span class="chip pending"><span class="dot"></span>صك الملكية — لم يُستلم</span>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <div class="project-card reveal delay-1">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <div class="project-tag">PROJECT II &nbsp;•&nbsp; SUB-DIVISION & PLANNING</div>
+      <h2 class="project-title">مشروع تخطيط وفرز أرض الجامعة القائمة</h2>
+      <div class="project-subtitle">رقم (٤) بالمخطط ٤٢٢٧٠٥ &nbsp;•&nbsp; عقد رقم 251039018757 &nbsp;•&nbsp; ~1.66 مليون م²</div>
+      <div class="proj-meta">
+        <div class="cell"><div class="lbl">المدة الأصلية</div><div class="val">180 يوم</div></div>
+        <div class="cell"><div class="lbl">المدة المضافة</div><div class="val" style="color:var(--gold-soft);font-size:13px;line-height:1.3">+22 يوم<span style="display:block;font-size:9px;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:400;margin-top:2px">لاعتماد القرار المساحي والصكوك</span></div></div>
+        <div class="cell"><div class="lbl">الانتهاء العقدي</div><div class="val">6 أكتوبر 2026</div></div>
+        <div class="cell"><div class="lbl">المستندات</div><div class="val warn">5/6</div></div>
+        <div class="cell pm">
+          <span class="av">م</span>
+          <div class="lbl">مدير المشروع</div>
+          <div class="val">م. محمد وجيه</div>
+        </div>
+      </div>
+      <div class="tp-slim">
+        <div class="tp-head">
+          <span class="left">المنقضي من المدة</span>
+          <span class="right">من 7 أبريل 2026 إلى 6 أكتوبر 2026 &nbsp;•&nbsp; <span class="pct" id="pct-e">—</span></span>
+        </div>
+        <div class="tp-bar"><div class="tp-fill" id="fill-e" style="width:0%"></div></div>
+        <div class="tp-mini-dates"><span>April 7, 2026</span><span id="elapsed-e">—</span><span>Oct 6, 2026</span></div>
+      </div>
+      <div class="section-title">المستندات الإدارية</div>
+      <div class="chips">
+        <span class="chip"><span class="dot"></span>عقد موقّع</span>
+        <span class="chip"><span class="dot"></span>محضر استلام الموقع</span>
+        <span class="chip"><span class="dot"></span>اعتماد فريق العمل</span>
+        <span class="chip"><span class="dot"></span>تصريح التصوير الجوي</span>
+        <span class="chip"><span class="dot"></span>اعتماد تصريح الرفع المساحي</span>
+        <span class="chip pending"><span class="dot"></span>صك الملكية — لم يُستلم</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. JOURNEY -->
+  <section id="sec-journey" class="section-anchor">
+    <div class="card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <span class="section-num">04</span>
+      <h2>رحلة تقدّم المشروع</h2>
+      <div class="sub">خط زمني مرئي للمراحل الكبرى — اضغط على المشروع لعرض رحلته</div>
+      <div class="body">
+        <div class="journey-tabs">
+          <button class="journey-tab active" data-journey="h">المشروع الأول — حضوضاء</button>
+          <button class="journey-tab" data-journey="e">المشروع الثاني — الجامعة القائمة</button>
+        </div>
+        <div id="journey-host" class="journey"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. TIMELINE (Gantt) -->
+  <section id="sec-timeline" class="section-anchor">
+    <div class="card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <span class="section-num">05</span>
+      <h2>الجدول الزمني التفصيلي</h2>
+      <div class="sub">المهمة الرئيسية بشريط ذهبي ودائرة مرقّمة، والتفاصيل أسفلها &nbsp;•&nbsp; مرّر فوق أي خط لرؤية موضع اليوم</div>
+      <div class="body">
+        <div class="tabs">
+          <button class="tab-btn active" data-target="gantt-h">المشروع الأول — حضوضاء</button>
+          <button class="tab-btn" data-target="gantt-e">المشروع الثاني — الجامعة القائمة</button>
+        </div>
+        <div id="gantt-h" class="gantt-wrap"></div>
+        <div id="gantt-e" class="gantt-wrap" style="display:none"></div>
+        <div class="legend">
+          <span class="lg"><span class="sw" style="background:rgba(58,125,94,.7)"></span>منتهية</span>
+          <span class="lg"><span class="sw" style="background:linear-gradient(90deg,var(--gold-deep),var(--gold))"></span>قيد التنفيذ</span>
+          <span class="lg"><span class="sw" style="background:rgba(232,196,120,.7)"></span>تسليم خلال ٣٠ يوم</span>
+          <span class="lg"><span class="sw" style="background:rgba(154,166,184,.5)"></span>قادمة</span>
+          <span class="lg"><span class="sw" style="background:linear-gradient(90deg,rgba(201,169,110,.5),rgba(201,169,110,.8));border:1px solid var(--gold)"></span>المهمة الرئيسية</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CRITICAL DELIVERABLES -->
+  <section id="sec-critical" class="section-anchor">
+    <div class="card reveal">
+      <div class="corner tl"></div><div class="corner br"></div>
+      <span class="section-num">06</span>
+      <h2>التسليمات الحرجة — الـ ٣٠ يوم القادمة</h2>
+      <div class="sub">من اليوم <span id="critFrom">—</span> حتى <span id="critTo">—</span></div>
+      <div class="body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المشروع</th><th>البند الرئيسي</th><th>تفصيل البند</th><th>تاريخ التسليم</th><th>المتبقي</th></tr></thead>
+            <tbody id="critical"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. TECHNICAL TABLES -->
+  <section id="sec-tech" class="section-anchor">
+    <div class="reveal" style="margin-bottom:8px"><span class="section-num">07</span></div>
+    <div class="row">
+      <div class="card reveal">
+        <div class="corner tl"></div><div class="corner br"></div>
+        <h2>بنود المشروع الأول — حضوضاء</h2>
+        <div class="sub">١٣ بند رئيسي يندرج تحتها التفاصيل</div>
+        <div class="body">
+          <div class="table-wrap">
+            <table class="tech-table">
+              <thead><tr><th>#</th><th>البند الرئيسي</th><th>تفصيل البند</th><th>المدة</th><th>التسليم</th><th>الحالة</th></tr></thead>
+              <tbody id="tbl-h" class="tech-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card reveal delay-1">
+        <div class="corner tl"></div><div class="corner br"></div>
+        <h2>بنود المشروع الثاني — الجامعة القائمة</h2>
+        <div class="sub">٨ بنود رئيسية يندرج تحتها التفاصيل</div>
+        <div class="body">
+          <div class="table-wrap">
+            <table class="tech-table">
+              <thead><tr><th>#</th><th>البند الرئيسي</th><th>تفصيل البند</th><th>المدة</th><th>التسليم</th><th>الحالة</th></tr></thead>
+              <tbody id="tbl-e" class="tech-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ====================================================================== */
+/*  PROJECT GEOSPATIAL DATA                                                 */
+/*  Source: GeoJSON files (verified against KMZ).                           */
+/*  Update by replacing the `coordinates` arrays below.                     */
+/* ====================================================================== */
+const PROJECT_GEO = {
+  hadhouda: {
+    label:'المشروع الأول — أرض حضوضاء',
+    color:'#e54848',  // red border for visibility
+    fill:'rgba(229,72,72,0.18)',
+    bounds:[[24.426949,39.796355],[24.466420,39.827622]],
+    center:[24.451723,39.813413],
+    geojson:{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [39.827622,24.427087],[39.827023,24.466168],[39.824697,24.46642],
+      [39.818501,24.464299],[39.814961,24.463202],[39.81261,24.462624],
+      [39.811311,24.461093],[39.810577,24.459728],[39.809679,24.459149],
+      [39.808365,24.459065],[39.807041,24.459781],[39.806703,24.461183],
+      [39.800588,24.460037],[39.796355,24.459557],[39.797729,24.440341],
+      [39.817653,24.430908],[39.817866,24.428058],[39.817948,24.426949],
+      [39.827622,24.427087]
+    ]]} }
+  },
+  existing: {
+    label:'المشروع الثاني — الجامعة الإسلامية القائمة',
+    color:'#e54848',  // red border for visibility
+    fill:'rgba(229,72,72,0.18)',
+    bounds:[[24.475877,39.551102],[24.490828,39.568694]],
+    center:[24.482299,39.560024],
+    geojson:{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [39.551102,24.47852],[39.551113,24.478509],[39.551679,24.478424],[39.552245,24.478339],[39.552811,24.478254],[39.553377,24.47817],[39.553943,24.478085],[39.554509,24.478],[39.555076,24.477915],[39.555642,24.47783],[39.556208,24.477745],[39.556774,24.47766],[39.55734,24.477575],[39.557906,24.47749],[39.558472,24.477405],[39.559038,24.477321],[39.559604,24.477236],[39.56017,24.477151],[39.560737,24.477066],[39.561303,24.476981],[39.561869,24.476896],[39.562435,24.476811],[39.563001,24.476726],[39.563567,24.476641],[39.564133,24.476556],[39.564699,24.476472],[39.565265,24.476387],[39.565832,24.476302],[39.566398,24.476217],[39.566964,24.476132],[39.56753,24.476047],[39.568096,24.475962],[39.568662,24.475877],[39.568694,24.475912],[39.568511,24.476398],[39.568327,24.476883],[39.568144,24.477368],[39.56796,24.477853],[39.567776,24.478338],[39.567597,24.478651],[39.567383,24.478941],[39.567063,24.479293],[39.566769,24.479668],[39.566622,24.479876],[39.566335,24.480126],[39.566048,24.480377],[39.565925,24.480439],[39.565568,24.480399],[39.565515,24.480855],[39.565869,24.480932],[39.566334,24.481234],[39.566516,24.481516],[39.566497,24.481808],[39.566574,24.482091],[39.56685,24.482603],[39.567126,24.483116],[39.567083,24.483192],[39.56651,24.4833],[39.565936,24.483407],[39.565363,24.483514],[39.564789,24.483622],[39.564215,24.483729],[39.563642,24.483836],[39.563068,24.483944],[39.562495,24.484051],[39.561921,24.484158],[39.561348,24.484266],[39.560774,24.484373],[39.56063,24.484583],[39.560746,24.485109],[39.560861,24.485634],[39.560977,24.486159],[39.561092,24.486684],[39.561208,24.487209],[39.561323,24.487735],[39.561439,24.48826],[39.561554,24.488785],[39.561533,24.488822],[39.560986,24.488975],[39.560439,24.489128],[39.559893,24.48928],[39.559346,24.489433],[39.558799,24.489585],[39.558252,24.489738],[39.557705,24.489891],[39.557159,24.490043],[39.556612,24.490196],[39.556065,24.490348],[39.555518,24.490501],[39.554971,24.490653],[39.554425,24.490806],[39.554346,24.490828],[39.554306,24.490807],[39.55416,24.490248],[39.554015,24.48969],[39.553869,24.489131],[39.553723,24.488573],[39.553578,24.488014],[39.553432,24.487456],[39.553286,24.486897],[39.553141,24.486339],[39.552995,24.48578],[39.552849,24.485222],[39.552704,24.484663],[39.552558,24.484105],[39.552412,24.483546],[39.552267,24.482988],[39.552121,24.48243],[39.551975,24.481871],[39.55183,24.481313],[39.551684,24.480754],[39.551538,24.480196],[39.551393,24.479637],[39.551247,24.479079],[39.551102,24.47852]
+    ]]} }
+  }
+};
+
+/* ====================================================================== */
+/*  TODAY (auto-updates)                                                    */
+/* ====================================================================== */
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+function parseD(s){return new Date(s);}
+function fmtAR(d){return d.toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric'});}
+function fmtFull(d){return d.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+function fmtShort(d){return d.toLocaleDateString('ar-EG',{month:'short',year:'2-digit'});}
+function days(a,b){return Math.round((b-a)/(1000*60*60*24));}
+
+document.getElementById('todayHero').textContent = fmtFull(TODAY);
+
+/* ====================================================================== */
+/*  SCHEDULE DATA                                                           */
+/*  - Project H end extended to 2027-04-06 (365 days from start)            */
+/*  - Each project includes a final "تسليم المستندات" task (10 days)        */
+/* ====================================================================== */
+const projectH = {
+  start: parseD('2026-04-07'), end: parseD('2027-04-06'), pm:'م. محمود علي',
+  tasks:[
+    {n:1, name:'التأكد من صحة الصك', subs:[
+      {name:'رفع المستندات اللازمة للتأكد من صحة الصك عبر القنوات الرسمية', s:'2026-04-12', e:'2026-05-11', dur:'30 يوم'},
+      {name:'تقديم بيانات المستندات للجامعة', s:'2026-05-12', e:'2026-05-17', dur:'6 يوم'}
+    ]},
+    {n:2, name:'تقرير الرفع المساحي', subs:[
+      {name:'الرفع المساحي والتصوير الجوي', s:'2026-04-15', e:'2026-05-03', dur:'19 يوم'},
+      {name:'إصدار Orthomosaic + Digital Elevation Model (DEM)', s:'2026-04-25', e:'2026-05-09', dur:'16 يوم'},
+      {name:'إصدار 3D Mesh + DSM + Contour Lines + Point Elevation Grid', s:'2026-05-03', e:'2026-05-17', dur:'15 يوم'},
+      {name:'إعداد وتقديم تقرير الرفع المساحي', s:'2026-05-18', e:'2026-05-27', dur:'10 يوم'}
+    ]},
+    {n:3, name:'إصدار القرار المساحي', detail:'اعتماد الرفع المساحي وإصدار قرار مساحي لكامل الموقع', s:'2026-06-01', e:'2026-06-30', dur:'30 يوم'},
+    {n:4, name:'إعداد التقرير الفني', subs:[
+      {name:'تقرير منهجية وخطة العمل والجدول الزمني', s:'2026-04-07', e:'2026-04-12', dur:'6 يوم'},
+      {name:'إعتماد مقترحات الإستخدامات بالموقع', s:'2026-05-12', e:'2026-05-19', dur:'8 يوم'},
+      {name:'تقرير مرحلة البدائل التصميمية', s:'2026-05-20', e:'2026-06-14', dur:'24 يوم'},
+      {name:'اعتماد البديل المرجح من الجامعة', s:'2026-06-15', e:'2026-06-21', dur:'7 يوم'},
+      {name:'تقرير مرحلة الموقع العام', s:'2026-06-22', e:'2026-07-05', dur:'14 يوم'},
+      {name:'التقرير النهائي', s:'2026-07-06', e:'2026-07-27', dur:'21 يوم'}
+    ]},
+    {n:5, name:'إعداد واعتماد الدراسة الهيدرولوجية', detail:'إعداد الدراسة الهيدرولوجية للموقع واعتمادها من المكتب المختص', s:'2026-05-24', e:'2026-07-07', dur:'45 يوم'},
+    {n:6, name:'إعداد واعتماد دراسة فحص التربة', detail:'إعداد دراسة فحص التربة واعتمادها من الأمانة', s:'2026-06-15', e:'2026-07-15', dur:'30 يوم'},
+    {n:7, name:'إعداد واعتماد الدراسة المرورية', detail:'إعداد الدراسة المرورية واعتمادها من الأمانة', s:'2026-06-01', e:'2026-09-01', dur:'90 يوم'},
+    {n:8, name:'إعداد واعتماد الفكرة التخطيطية', subs:[
+      {name:'إعداد الفكرة التخطيطية', s:'2026-09-01', e:'2026-09-07', dur:'7 يوم'},
+      {name:'اعتماد الفكرة التخطيطية من الجامعة', s:'2026-09-08', e:'2026-09-15', dur:'7 يوم'},
+      {name:'إعتماد الفكرة التخطيطية من الأمانة', s:'2026-09-16', e:'2026-09-30', dur:'15 يوم'}
+    ]},
+    {n:9, name:'الموافقة على التخطيط', detail:'الموافقة الفنية على تخطيط الموقع من صاحب الصلاحية بالأمانة', s:'2026-10-01', e:'2026-10-31', dur:'30 يوم'},
+    {n:10, name:'موافقة هيئة المساحة الجيولوجية', detail:'الموافقة على إنشاء المشروع من صاحب الصلاحية', s:'2026-11-01', e:'2026-11-30', dur:'30 يوم'},
+    {n:11, name:'الإعتماد الإبتدائي للمخطط', subs:[
+      {name:'إعداد المخطط الإبتدائي', s:'2026-12-01', e:'2026-12-15', dur:'15 يوم'},
+      {name:'أخذ موافقة الجامعة على المخطط', s:'2026-12-16', e:'2026-12-23', dur:'7 يوم'},
+      {name:'إعتماد المخطط من الأمانة', s:'2026-12-24', e:'2027-01-07', dur:'15 يوم'}
+    ]},
+    {n:12, name:'تسجيل المخطط', detail:'تسجيل المخطط على نظام الأمانة', s:'2027-01-14', e:'2027-02-18', dur:'30 يوم'},
+    {n:13, name:'تسليم المستندات', detail:'تسليم المستندات النهائية للجامعة (المخططات، التقارير، السكوك)', s:'2027-02-19', e:'2027-02-28', dur:'10 يوم'}
+  ]
+};
+
+const projectE = {
+  start: parseD('2026-04-07'), end: parseD('2026-11-05'), pm:'م. محمد وجيه',
+  tasks:[
+    {n:1, name:'تقرير الرفع المساحي لكامل أرض الجامعة', subs:[
+      {name:'الرفع المساحي والتصوير الجوي', s:'2026-04-15', e:'2026-05-03', dur:'19 يوم'},
+      {name:'إصدار Orthomosaic + Digital Elevation Model (DEM)', s:'2026-04-27', e:'2026-05-11', dur:'16 يوم'},
+      {name:'إصدار 3D Mesh + DSM + Contour + Point Elevation Grid', s:'2026-05-11', e:'2026-06-01', dur:'20 يوم'},
+      {name:'إعداد وتقديم تقرير الرفع المساحي', s:'2026-06-01', e:'2026-06-07', dur:'10 يوم'}
+    ]},
+    {n:2, name:'اعتماد الرفع المساحي من أمانة منطقة المدينة المنورة', detail:'اعتماد الرفع المساحي من أمانة المدينة المنورة', s:'2026-06-08', e:'2026-07-07', dur:'30 يوم'},
+    {n:3, name:'إعداد الأفكار التصميمية وصولاً للمخطط التفصيلي النهائي', subs:[
+      {name:'تقرير منهجية وخطة العمل والجدول الزمني', s:'2026-04-07', e:'2026-04-12', dur:'6 يوم'},
+      {name:'تقرير الوضع الراهن وتحليل الإستخدامات وشبكة الحركة', s:'2026-05-12', e:'2026-05-24', dur:'15 يوم'},
+      {name:'إعتماد مقترحات الإستخدامات بالموقع', s:'2026-05-12', e:'2026-05-18', dur:'8 يوم'},
+      {name:'تقرير مرحلة البدائل التصميمية', s:'2026-06-07', e:'2026-06-28', dur:'20 يوم'},
+      {name:'اعتماد البديل المرجح من الجامعة', s:'2026-06-29', e:'2026-07-05', dur:'7 يوم'},
+      {name:'تقرير مرحلة الموقع العام', s:'2026-07-06', e:'2026-07-19', dur:'14 يوم'},
+      {name:'التقرير النهائي', s:'2026-07-20', e:'2026-08-09', dur:'21 يوم'},
+      {name:'تجهيز المخطط التفصيلي لرفعه للإعتماد بالأمانة', s:'2026-08-10', e:'2026-08-16', dur:'7 يوم'},
+      {name:'اعتماد المخطط التفصيلي', s:'2026-08-17', e:'2026-08-23', dur:'7 يوم'}
+    ]},
+    {n:4, name:'اعتماد المخطط التفصيلي وتنزيله على نظام الأمانة (مخطط إفراز)', detail:'تنزيل المخطط التفصيلي على نظام إفراز', s:'2026-08-24', e:'2026-09-06', dur:'14 يوم'},
+    {n:5, name:'إعداد قرارات الذرعة لكافة القطع', subs:[
+      {name:'إعداد قرارات الذرعة', s:'2026-08-24', e:'2026-09-07', dur:'15 يوم'},
+      {name:'اعتماد قرارات الذرعة', s:'2026-09-08', e:'2026-09-21', dur:'15 يوم'}
+    ]},
+    {n:6, name:'إصدار الصكوك لكافة القطع', subs:[
+      {name:'تجهيز بيانات الصكوك للاعتماد', s:'2026-09-08', e:'2026-09-21', dur:'15 يوم'},
+      {name:'إصدار الصكوك', s:'2026-09-22', e:'2026-10-12', dur:'21 يوم'}
+    ]},
+    {n:7, name:'إصدار القرارات المساحية لكافة القطع', subs:[
+      {name:'إعداد القرارات المساحية', s:'2026-09-22', e:'2026-10-05', dur:'15 يوم'},
+      {name:'اعتماد القرارات المساحية', s:'2026-10-13', e:'2026-10-26', dur:'15 يوم'}
+    ]},
+    {n:8, name:'تسليم المستندات', detail:'تسليم المستندات النهائية للجامعة (المخططات، الصكوك، القرارات المساحية)', s:'2026-10-27', e:'2026-11-05', dur:'10 يوم'}
+  ]
+};
+
+/* ====================================================================== */
+/*  STATUS HELPERS                                                          */
+/* ====================================================================== */
+function statusOf(t){
+  const s=parseD(t.s), e=parseD(t.e);
+  if (TODAY > e) return {key:'done', lbl:'منتهي'};
+  if (TODAY >= s && TODAY <= e){
+    const left = days(TODAY,e);
+    if (left === 0) return {key:'due', lbl:'مستحق اليوم'};
+    if (left <= 30) return {key:'inprog', lbl:`قيد التنفيذ (${left} يوم)`};
+    return {key:'inprog', lbl:'قيد التنفيذ'};
+  }
+  const d = days(TODAY, s);
+  if (d <= 30) return {key:'soon', lbl:`يبدأ خلال ${d} يوم`};
+  return {key:'up', lbl:'قادم'};
+}
+/* Improved status for a main task (with subs):
+   - If all subs are done → done
+   - If any sub is currently active (inprog/due) → inprog
+   - If at least one sub done AND others not done → inprog (project partially complete)
+   - Else → upcoming
+*/
+function statusOfMain(mt){
+  if (mt.subs && mt.subs.length){
+    const keys = mt.subs.map(s=>statusOf(s).key);
+    if (keys.every(k=>k==='done')) return 'done';
+    if (keys.some(k=>k==='inprog' || k==='due')) return 'inprog';
+    if (keys.some(k=>k==='done')) return 'inprog';
+    return 'upcoming';
+  }
+  const k = statusOf(mt).key;
+  if (k==='done') return 'done';
+  if (k==='inprog' || k==='due') return 'inprog';
+  return 'upcoming';
+}
+function cssClassFor(stKey){return {done:'s-done',inprog:'s-inprog',soon:'s-soon',up:'s-up',due:'s-due'}[stKey]||'s-up'}
+function barClassFor(stKey){return {done:'done',inprog:'inprog',due:'inprog',soon:'soon',up:'up'}[stKey]||'up'}
+
+function currentPhase(project){
+  for (const mt of project.tasks){
+    if (statusOfMain(mt) === 'inprog') return mt.name;
+  }
+  for (const mt of project.tasks){
+    if (mt.subs){
+      const soon = mt.subs.find(sb=> statusOf(sb).key==='soon');
+      if (soon) return 'الاستعداد لـ: '+mt.name;
+    } else {
+      if (statusOf(mt).key==='soon') return 'الاستعداد لـ: '+mt.name;
+    }
+  }
+  return '—';
+}
+
+/* ====================================================================== */
+/*  TABLES                                                                  */
+/* ====================================================================== */
+function renderTable(tbody, project){
+  let html = '';
+  project.tasks.forEach(mt=>{
+    if (mt.subs && mt.subs.length){
+      mt.subs.forEach((sb, i)=>{
+        const st = statusOf(sb);
+        if (i===0){
+          html += `<tr class="main-task">
+            <td>${mt.n}</td>
+            <td class="main-name" rowspan="${mt.subs.length}">${mt.name}</td>
+            <td class="sub-name">${sb.name}</td>
+            <td style="white-space:nowrap">${sb.dur}</td>
+            <td style="white-space:nowrap;font-family:'Playfair Display',serif">${fmtAR(parseD(sb.e))}</td>
+            <td><span class="task-status ${cssClassFor(st.key)}">${st.lbl}</span></td>
+          </tr>`;
+        } else {
+          html += `<tr class="sub-task">
+            <td>${mt.n}.${i+1}</td>
+            <td class="sub-name">${sb.name}</td>
+            <td style="white-space:nowrap">${sb.dur}</td>
+            <td style="white-space:nowrap;font-family:'Playfair Display',serif">${fmtAR(parseD(sb.e))}</td>
+            <td><span class="task-status ${cssClassFor(st.key)}">${st.lbl}</span></td>
+          </tr>`;
+        }
+      });
+    } else {
+      const st = statusOf(mt);
+      html += `<tr class="main-task">
+        <td>${mt.n}</td>
+        <td class="main-name">${mt.name}</td>
+        <td>${mt.detail||'—'}</td>
+        <td style="white-space:nowrap">${mt.dur}</td>
+        <td style="white-space:nowrap;font-family:'Playfair Display',serif">${fmtAR(parseD(mt.e))}</td>
+        <td><span class="task-status ${cssClassFor(st.key)}">${st.lbl}</span></td>
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+}
+renderTable(document.getElementById('tbl-h'), projectH);
+renderTable(document.getElementById('tbl-e'), projectE);
+
+/* ====================================================================== */
+/*  CRITICAL 30 DAYS                                                        */
+/* ====================================================================== */
+function flatForCritical(project, projName){
+  const out = [];
+  project.tasks.forEach(mt=>{
+    if (mt.subs){ mt.subs.forEach(sb=>out.push({proj:projName, main:mt.name, detail:sb.name, e:sb.e})); }
+    else { out.push({proj:projName, main:mt.name, detail:mt.detail||'—', e:mt.e}); }
+  });
+  return out;
+}
+const all = [...flatForCritical(projectH,'حضوضاء'), ...flatForCritical(projectE,'الجامعة القائمة')];
+const cutoff = new Date(TODAY); cutoff.setDate(cutoff.getDate()+30);
+const critical = all.filter(t=>{const e=parseD(t.e);return e>=TODAY && e<=cutoff;}).sort((a,b)=>parseD(a.e)-parseD(b.e));
+
+document.getElementById('critical').innerHTML = critical.map(t=>{
+  const left = days(TODAY, parseD(t.e));
+  const cls = left<=0?'s-due':left<=14?'s-soon':'s-inprog';
+  const txt = left<=0 ? 'مستحق اليوم' : `${left} يوم`;
+  return `<tr><td><b>${t.proj}</b></td><td>${t.main}</td><td>${t.detail}</td><td style="font-family:'Playfair Display',serif">${fmtAR(parseD(t.e))}</td><td><span class="task-status ${cls}">${txt}</span></td></tr>`;
+}).join('') || '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">لا توجد تسليمات خلال الـ ٣٠ يوم القادمة</td></tr>';
+
+document.getElementById('critCount').innerHTML = `${critical.length} <small>تسليم</small>`;
+document.getElementById('critUntil').textContent = fmtAR(cutoff);
+document.getElementById('critFrom').textContent  = fmtAR(TODAY);
+document.getElementById('critTo').textContent    = fmtAR(cutoff);
+document.getElementById('popup-deliv-list').innerHTML = critical.map(t=>{
+  const left = days(TODAY, parseD(t.e));
+  return `<li><b>${t.detail}</b><span class="small">${t.proj} · ${t.main} — ${fmtAR(parseD(t.e))} (${left>0?left+' يوم':'مستحق اليوم'})</span></li>`;
+}).join('');
+document.getElementById('critBar').style.width = Math.min(100, critical.length/12*100) + '%';
+
+/* ====================================================================== */
+/*  GANTT                                                                   */
+/* ====================================================================== */
+function buildGantt(container, project){
+  const start = project.start, end = project.end, total = end - start;
+  const xPct = (date) => ((parseD(date)-start)/total)*100;
+
+  // months ticks
+  let monthsHTML = '';
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  while(cur <= end){
+    const x = ((cur - start)/total)*100;
+    if (x>=0 && x<=100) monthsHTML += `<div class="month" style="right:${x}%">${fmtShort(cur)}</div>`;
+    cur.setMonth(cur.getMonth()+1);
+  }
+  // today % (used by hover-marker on each row)
+  const todayPct = ((TODAY-start)/total)*100;
+  const todayInRange = (todayPct >= 0 && todayPct <= 100);
+
+  let groupsHTML = '';
+  project.tasks.forEach(mt=>{
+    let gStart, gEnd;
+    if (mt.subs && mt.subs.length){
+      gStart = mt.subs.reduce((a,s)=>parseD(s.s)<a?parseD(s.s):a, parseD(mt.subs[0].s));
+      gEnd   = mt.subs.reduce((a,s)=>parseD(s.e)>a?parseD(s.e):a, parseD(mt.subs[0].e));
+    } else { gStart = parseD(mt.s); gEnd = parseD(mt.e); }
+    const gS = ((gStart-start)/total)*100;
+    const gW = ((gEnd-gStart)/total)*100;
+
+    // today marker (only added if today is within project window)
+    const todayMark = todayInRange ? `<div class="row-today" style="right:${todayPct}%"></div>` : '';
+
+    let grp = `<div class="gantt-group">
+      <div class="group-row">
+        <div class="group-label"><span class="num">${mt.n}</span>${mt.name}</div>
+        <div class="group-track">
+          <div class="group-bar" style="right:${gS}%;width:${gW}%"></div>
+          ${todayMark}
+        </div>
+      </div>`;
+
+    if (mt.subs && mt.subs.length){
+      mt.subs.forEach((sb, i)=>{
+        const sPct = xPct(sb.s);
+        const w = ((parseD(sb.e)-parseD(sb.s))/total)*100;
+        const stKey = statusOf(sb).key;
+        grp += `<div class="bar-row">
+          <div class="bar-label" title="${sb.name}">${mt.n}.${i+1} ${sb.name}</div>
+          <div class="bar-track">
+            <div class="bar ${barClassFor(stKey)}" style="right:${sPct}%;width:${w}%">${sb.dur}</div>
+            ${todayMark}
+          </div>
+        </div>`;
+      });
+    } else if (mt.detail){
+      const sPct = xPct(mt.s);
+      const w = ((parseD(mt.e)-parseD(mt.s))/total)*100;
+      const stKey = statusOf(mt).key;
+      grp += `<div class="bar-row">
+        <div class="bar-label" title="${mt.detail}">${mt.detail}</div>
+        <div class="bar-track">
+          <div class="bar ${barClassFor(stKey)}" style="right:${sPct}%;width:${w}%">${mt.dur}</div>
+          ${todayMark}
+        </div>
+      </div>`;
+    }
+    grp += `</div>`;
+    groupsHTML += grp;
+  });
+
+  const todayLineInHeader = todayInRange
+    ? `<div style="position:absolute;top:-4px;bottom:-4px;right:${todayPct}%;width:2px;background:var(--red);z-index:5;box-shadow:0 0 8px rgba(229,72,72,.7)"><div style="position:absolute;bottom:calc(100% + 2px);transform:translateX(50%);background:#a96d6d;color:#fff;font-size:9px;padding:2px 7px;border-radius:4px;white-space:nowrap;font-weight:700;letter-spacing:.5px">اليوم</div></div>`
+    : '';
+  container.innerHTML = `
+    <div class="gantt-header"><div></div><div class="months" style="position:relative;overflow:visible">${monthsHTML}${todayLineInHeader}</div></div>
+    <div class="gantt">${groupsHTML}</div>`;
+}
+buildGantt(document.getElementById('gantt-h'), projectH);
+buildGantt(document.getElementById('gantt-e'), projectE);
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.gantt-wrap').forEach(g=>g.style.display='none');
+    document.getElementById(btn.dataset.target).style.display='block';
+  });
+});
+
+/* ====================================================================== */
+/*  TIMELINE PROGRESS                                                       */
+/* ====================================================================== */
+function setProgress(fillEl, pctEl, elapsedEl, project){
+  const total = project.end - project.start;
+  const elapsed = Math.max(0, TODAY - project.start);
+  const pct = Math.min(100, Math.round((elapsed/total)*1000)/10);
+  setTimeout(()=>{ fillEl.style.width = pct + '%'; }, 200);
+  pctEl.textContent = pct + '%';
+  elapsedEl.textContent = `مرّ ${days(project.start, TODAY)} يوم من ${days(project.start, project.end)} يوم`;
+  return pct;
+}
+const pctH = setProgress(document.getElementById('fill-h'), document.getElementById('pct-h'), document.getElementById('elapsed-h'), projectH);
+const pctE = setProgress(document.getElementById('fill-e'), document.getElementById('pct-e'), document.getElementById('elapsed-e'), projectE);
+document.getElementById('elapsedH').textContent = pctH + '%';
+document.getElementById('elapsedE').textContent = pctE + '%';
+setTimeout(()=>{
+  document.getElementById('elapsedHbar').style.width = pctH + '%';
+  document.getElementById('elapsedEbar').style.width = pctE + '%';
+}, 400);
+
+/* ====================================================================== */
+/*  KPI POPUPS                                                              */
+/* ====================================================================== */
+document.querySelectorAll('.exec-kpi.clickable').forEach(kpi=>{
+  kpi.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    const popup = kpi.querySelector('.popup-kpi');
+    if (!popup) return;
+    document.querySelectorAll('.popup-kpi').forEach(p=>{ if (p!==popup) p.classList.remove('show'); });
+    popup.classList.toggle('show');
+  });
+});
+document.addEventListener('click',()=>{document.querySelectorAll('.popup-kpi').forEach(p=>p.classList.remove('show'));});
+
+/* ====================================================================== */
+/*  LOGOS                                                                   */
+/* ====================================================================== */
+function tryLoadLogo(slot){
+  const raw = slot.getAttribute('data-img'); if (!raw) return;
+  const url = encodeURI(raw);
+  const im = new Image();
+  im.onload = ()=>{ slot.classList.add('has-img'); const tag=document.createElement('img'); tag.src=url; tag.alt=slot.title||''; slot.appendChild(tag); };
+  im.onerror = ()=>{};
+  im.src = url;
+}
+['logo-iu','logo-mudarat'].forEach(id=>{const el=document.getElementById(id); if(el) tryLoadLogo(el);});
+
+/* ====================================================================== */
+/*  LEAFLET MAP                                                             */
+/* ====================================================================== */
+const fullBounds = L.latLngBounds(
+  L.latLng(Math.min(PROJECT_GEO.hadhouda.bounds[0][0], PROJECT_GEO.existing.bounds[0][0]),
+           Math.min(PROJECT_GEO.hadhouda.bounds[0][1], PROJECT_GEO.existing.bounds[0][1])),
+  L.latLng(Math.max(PROJECT_GEO.hadhouda.bounds[1][0], PROJECT_GEO.existing.bounds[1][0]),
+           Math.max(PROJECT_GEO.hadhouda.bounds[1][1], PROJECT_GEO.existing.bounds[1][1]))
+);
+const map = L.map('map', { zoomControl:true, attributionControl:true });
+L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution:'Tiles © Esri', maxZoom:19 }
+).addTo(map);
+
+function projectPopupHTML(key){
+  const p = (key==='hadhouda') ? projectH : projectE;
+  const title = (key==='hadhouda') ? 'مشروع تخطيط أرض الجامعة بحي حضوضاء' : 'مشروع تخطيط وفرز أرض الجامعة القائمة';
+  const contract = (key==='hadhouda') ? '251139003684' : '251039018757';
+  const area     = (key==='hadhouda') ? '~10 مليون م²' : '~1.66 مليون م²';
+  const projName = (key==='hadhouda') ? 'حضوضاء' : 'الجامعة القائمة';
+  const next = critical.filter(c=>c.proj===projName)[0];
+  const nextTxt = next ? `${next.detail} (${fmtAR(parseD(next.e))})` : '—';
+  return `
+    <div class="title">${title}</div>
+    <div class="row"><span class="k">رقم العقد</span><span class="v">${contract}</span></div>
+    <div class="row"><span class="k">مدير المشروع</span><span class="v">${p.pm}</span></div>
+    <div class="row"><span class="k">المساحة</span><span class="v">${area}</span></div>
+    <div class="row"><span class="k">المباشرة</span><span class="v">${fmtAR(p.start)}</span></div>
+    <div class="row"><span class="k">الانتهاء</span><span class="v">${fmtAR(p.end)}</span></div>
+    <div class="row"><span class="k">المدة</span><span class="v">${days(p.start, p.end)} يوم</span></div>
+    <div class="row"><span class="k">المرحلة الحالية</span><span class="v">${currentPhase(p)}</span></div>
+    <div class="row"><span class="k">التسليم القادم</span><span class="v">${nextTxt}</span></div>
+  `;
+}
+function styleFor(key){
+  const o = PROJECT_GEO[key];
+  return { color:o.color, weight:3.5, fillColor:o.color, fillOpacity:.22, dashArray:'6,4' };
+}
+const layerH = L.geoJSON(PROJECT_GEO.hadhouda.geojson, { style: styleFor('hadhouda') }).bindPopup(projectPopupHTML('hadhouda')).addTo(map);
+const layerE = L.geoJSON(PROJECT_GEO.existing.geojson, { style: styleFor('existing') }).bindPopup(projectPopupHTML('existing')).addTo(map);
+
+L.marker(PROJECT_GEO.hadhouda.center, {
+  icon: L.divIcon({ className:'', html:`<div style="background:${PROJECT_GEO.hadhouda.color};color:#fff;font-family:'Cairo',sans-serif;font-weight:700;padding:4px 10px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)">PROJECT I — حضوضاء</div>`, iconSize:[120,24] })
+}).addTo(map);
+L.marker(PROJECT_GEO.existing.center, {
+  icon: L.divIcon({ className:'', html:`<div style="background:${PROJECT_GEO.existing.color};color:#fff;font-family:'Cairo',sans-serif;font-weight:700;padding:4px 10px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)">PROJECT II — الجامعة القائمة</div>`, iconSize:[150,24] })
+}).addTo(map);
+
+map.fitBounds(fullBounds, { padding:[40,40] });
+
+document.querySelectorAll('.map-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const a = btn.dataset.action;
+    if (a==='zoom-p1'){ map.flyToBounds(PROJECT_GEO.hadhouda.bounds, { padding:[40,40], duration:1.0 }); layerH.openPopup(); }
+    if (a==='zoom-p2'){ map.flyToBounds(PROJECT_GEO.existing.bounds, { padding:[40,40], duration:1.0 }); layerE.openPopup(); }
+    if (a==='reset-view'){ map.flyToBounds(fullBounds, { padding:[40,40], duration:1.0 }); }
+  });
+});
+
+/* ====================================================================== */
+/*  JOURNEY (improved status detection)                                     */
+/* ====================================================================== */
+function buildJourney(key){
+  const project = (key==='h') ? projectH : projectE;
+  const host = document.getElementById('journey-host');
+  let html = '';
+  project.tasks.forEach(mt=>{
+    let st = statusOfMain(mt);
+    // mark inprog as critical if any sub is "due today"
+    if (st==='inprog' && mt.subs && mt.subs.some(sb=>statusOf(sb).key==='due')) st='critical';
+    let gStart, gEnd;
+    if (mt.subs && mt.subs.length){
+      gStart = mt.subs.reduce((a,s)=>parseD(s.s)<a?parseD(s.s):a, parseD(mt.subs[0].s));
+      gEnd   = mt.subs.reduce((a,s)=>parseD(s.e)>a?parseD(s.e):a, parseD(mt.subs[0].e));
+    } else { gStart = parseD(mt.s); gEnd = parseD(mt.e); }
+    const badge = ({done:'منتهية',inprog:'قيد التنفيذ',upcoming:'قادمة',critical:'حرجة'})[st];
+    html += `<div class="j-stage ${st}">
+      <div class="marker">${mt.n}</div>
+      <div class="title">${mt.name}</div>
+      <div class="meta">${fmtAR(gStart)} → ${fmtAR(gEnd)} &nbsp;•&nbsp; ${days(gStart,gEnd)} يوم${mt.subs?` &nbsp;•&nbsp; ${mt.subs.length} تسليمات فرعية`:''}</div>
+      <span class="badge">${badge}</span>
+    </div>`;
+  });
+  host.innerHTML = html;
+}
+buildJourney('h');
+document.querySelectorAll('.journey-tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.journey-tab').forEach(b=>b.classList.remove('active'));
+    t.classList.add('active');
+    buildJourney(t.dataset.journey);
+  });
+});
+
+/* ====================================================================== */
+/*  STICKY NAV active link tracking                                         */
+/* ====================================================================== */
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [...navLinks].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+function onScroll(){
+  const y = window.scrollY + 120;
+  let activeIdx = 0;
+  sections.forEach((sec, i)=>{ if (sec.offsetTop <= y) activeIdx = i; });
+  navLinks.forEach((a,i)=> a.classList.toggle('active', i===activeIdx));
+}
+window.addEventListener('scroll', onScroll);
+onScroll();
+
+/* ====================================================================== */
+/*  REVEAL ON SCROLL                                                        */
+/* ====================================================================== */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    document.querySelectorAll('.reveal').forEach(el=>{
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight) el.classList.add('in');
+    });
+  }, 100);
+});
+</script>
+</body>
+</html>
